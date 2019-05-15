@@ -1,5 +1,6 @@
 
 
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -13,13 +14,20 @@ library(plotly)
 library(MASS)
 library(vegan)
 library(ggfortify)
-
+library(corrplot)
+library(bs4Dash)
+library(caret)
 
 
 
 normalize <- function(x) { 
   return((x - min(x)) / (max(x) - min(x)))
 }
+
+
+nd<-read.csv("trend.csv")
+nds<-read.csv("season.csv")
+
 
 x2    <-  read.csv("datfull.csv")
 x<-lapply(x2[,11:ncol(x2)],normalize)
@@ -42,7 +50,7 @@ x <- read.csv("dataSaul2018.csv")
 
 d<-x[,3:40]
 
-x2<-lapply(x[,3:ncol(x)],normalize)
+x2n<-lapply(x[,3:ncol(x)],normalize)
 d<-lapply(x2,ts,frequency=12)
 d<-lapply(d,stl,s.window="periodic")
 d<-data.frame(d$precip$time.series[,2],d$rad$time.series[,2],d$temp$time.series[,2],d$heat$time.series[,2],d$s_mois0_10$time.series[,2],d$s_mois10_200$time.series[,2],d$hum$time.series[,2],d$NOI$time.series[,2],d$A.fendleri$time.series[,2],d$P.tovarense$time.series[,2],d$H.moritziana$time.series[,2],d$R.grandis$time.series[,2],d$C.tremadena$time.series[,2],
@@ -52,8 +60,9 @@ d<-data.frame(d$precip$time.series[,2],d$rad$time.series[,2],d$temp$time.series[
               d$Miconea.dodecandra$time.series[,2],d$Gaffenridia.latifolia$time.series[,2],d$Tretrorchidium.rubriverbium$time.series[,2],d$Eliocarpus.americanus$time.series[,2],
               d$Viburnum.timoides.var.venezuelense.1$time.series[,2])
 colnames(d)<-colnames(x[,3:ncol(x)])
+  
 
-
+d4 <- read.csv("dataSaul2018.csv")
 
 
 header <- dashboardHeader(title = "RconRo")
@@ -64,7 +73,10 @@ sidebar <- dashboardSidebar(
     # Setting id makes input$tabs give the tabName of currently-selected tab
     id = "tabs",
     
-    menuItem("Introducción", tabName = "intro"
+    menuItem("Portada", tabName = "intro"
+             
+    ),
+    menuItem("Introducción", tabName = "intro2"
              
     ),
     
@@ -73,6 +85,41 @@ sidebar <- dashboardSidebar(
              menuSubItem("Exploratorio", tabName = "subitem2"),
              menuSubItem("Series temporales", tabName = "subitem1"),
              menuSubItem("Análisis Wavelet", tabName = "subitem3")
+             
+             
+    ),
+    menuItem("Machine Learning", icon = icon("bar-chart-o"), tabName = "lisis",
+             
+             menuSubItem("ANN", tabName = "subitem4"),
+             menuSubItem("SVM", tabName = "subitem5"),
+             menuSubItem("Random Forest", tabName = "subitem6")
+             
+             
+    ),
+    
+    menuItem("Síntesis", icon = icon("bar-chart-o"), tabName = "lisis",
+             
+             menuSubItem("Resultados", tabName = "subitem7"),
+             menuSubItem("Discusión", tabName = "subitem8"),
+             menuSubItem("Conclusiones", tabName = "subitem9")
+             
+             
+    ),
+    
+    menuItem("Métodos", icon = icon("bar-chart-o"), tabName = "lisis",
+             
+             menuSubItem("Data de Campo", tabName = "subitem7"),
+             menuSubItem("Data climática", tabName = "subitem8"),
+             menuSubItem("Estadística", tabName = "subitem9")
+             
+             
+    ),
+    
+    menuItem("Referencias", icon = icon("bar-chart-o"), tabName = "lisis",
+             
+             menuSubItem("Bosque y Cambio Climático", tabName = "subitem7"),
+             menuSubItem("Machine Learning", tabName = "subitem8"),
+             menuSubItem("Series temporales", tabName = "subitem9")
              
              
     )
@@ -87,14 +134,17 @@ body <- dashboardBody(
   tabItems(
     
     tabItem("intro",
-            img(
-              src = "my_logo.png",
-              height = 150,
-              width = 75
-              
-            ),
             
-           h5("Introducción:"),
+            
+            
+           h1("Predicciones computacionales de los eventos reproductivos futuros en 15 especies de plantas del bosque nublado de la Cordillera de la Costa, Venezuela",align="center"),
+           h5("Rodrigo Díaz Lupanow, Esther Gutierrez, Otto Rendón, Carlos Méndez, Saúl Flores",align="center"),
+           h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC)",align="center"),
+           h5("programandoconro@gmail.com",align="center"),
+           img(
+             src = "global.png"
+             
+           ),
             
             h5("Nota del autor: Este es un proyecto científico y de divulgación, parte de un trabajo de maestría y parte blog de la página RconRo. El objetivo es entender los efectos del cambio climático en los eventos reproductivos (floración y fructificación) de 15 especies de plantas del bosque nublado, en la Cordillera de la Costa, Venezuela. Primero se hará un estudio de la data, desde un exploración inicial, hasta algoritmos que predigan las tendencia futuras del bosque. La información que se adquira puede ser útil a la hora de tomar decisiones de conservación y adaptación al cambio climático")   
             
@@ -170,14 +220,44 @@ body <- dashboardBody(
             
     ),
     
-    tabItem("subitem2",
+    tabItem("subitem2", tabsetPanel(
+      
+      
+      tabPanel( "PCA",
             
            sliderInput("range3", "Years from 1983 to 2017:",min = 1, max = 420, value = c(1,420)),
             selectInput("sel3", "Phenophase:",
                        choices = c("Flowering","Fruiting"),selected = "Flowering"),
            plotlyOutput("distPlot2")
            
-       
+      ),
+      
+      tabPanel( "Correlaciones",
+                
+                selectInput("var211","Variables a incluir en primera imagen:",
+                            colnames(d4),multiple = T,selected = colnames(d4[,c(12,13,15:25)])),
+                sliderInput("range11", "Meses a incluir (desde 1983 a 2017):",
+                            min = 1, max = nrow(d4), value = c(1,146)),
+                checkboxInput("box","Ordenar por cluster"),
+                hr(),
+                plotOutput("distPlot5")
+                
+                
+      ),
+      
+      tabPanel( "MSD3",
+                h5("MSD3 para P. fendleri y variables climáticas"),
+                
+                img(src="msd3d.png")
+                
+                
+                
+      )
+      
+      
+      
+      
+      )
             
             
     ),
@@ -188,17 +268,147 @@ body <- dashboardBody(
                         choices = colnames(d),selected = "A.fendleri"),
             plotOutput("distPlot3")
             
-    )
+    ),
+    tabItem("subitem4",
+            
+            actionButton("go1","Train model"),
+            h5("Cross-validation: Averaged Correlation and RMSE between predictions and actual data"),
+            textOutput("texto"),
+            actionButton("go2","Predict"),
+            
+            
+            plotOutput("distPlot6"),
+            
+            selectInput("data","Type of data",c("Raw"),selected = "Raw"),
+            selectInput("sp","Output neurons",colnames(nd[,c(12,13,15:ncol(nd))]),multiple = F ,selected = "P.fendleri"),
+            selectInput("clima","Income neurons ",colnames(nd),multiple = T,selected = colnames(nd[,1:8])),
+            h5("Grid of tuning parameters"),
+            numericInput("grid1","Hidden neurons",1),
+            numericInput("grid2","Decay",0.1),
+            numericInput("grid3","Number of models to train",5),
+            
+            h5("Prediction matrix:"),
+            sliderInput("binsn", "Section of real data", min = 1, max = nrow(nd), value = c(300,420)),
+            
+           
+            
+            
+            h3("Redes Neuronales Artificiales para predecir la tendencia interanual de los eventos reproductivos de P. fendleri en el bosque", align="center"),
+            h5("Línea contínua: data real, Línea cortada: predicciones", align="left"),
+            
+            img(src="ann_pred.png")
+            )
   ),
+  
   h5("App creada por: Lic. Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
-  h5("Aplicación para anáisis de datos en tesis de maestría en Ecología"),
+  h5("Aplicación para análisis de datos en tesis de maestría en Ecología"),
   h5("Tutor: Dr. Saúl Flores"),
   h5("Colaboradores: Dr. Carlos Mendez, Dra. Esther Gutierrez, Dr. Otto Rendón"),
   h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC), 2019"),
-  h5("Derechos Reservados")
+  h5(" Santa Cruz de Tenerife, Mayo, 2019. Todos los derechos reservados")
 )
 
+
 server <- function(input, output) {
+  
+  
+  
+  output$distPlot5 <- renderPlot({
+    
+    
+    
+    a1=input$range11[1];b1=input$range11[2]
+    
+    
+    M=cor(d4[a1:b1,input$var211])
+    
+    corrplot(M,method = "circle",order =  ifelse(input$box==T,  "hclust","alphabet"))
+    
+    
+  })
+  
+  observeEvent(input$go1, {
+    
+    
+    if(input$data=="Raw"){
+      dn=as.data.frame(x2n)
+    }
+    
+    if(input$data=="Seasonal"){
+      dn=lapply( dsn,normalize)
+      dn=as.data.frame(dn)
+    
+      
+      }
+    
+    
+    output$texto <- renderText({
+      
+      e<- sample(1:nrow(dn), floor( 0.75*nrow(dn)))
+      c<-dn[-e,]
+      dn=dn[e,]
+      
+      
+      
+      t <-  avNNet(dn[,input$sp]~.,data = dn[,input$clima],
+                   type="avNNet",linout = TRUE,size=input$grid1,decay=input$grid2,bag = T,repeats =input$grid3)
+      
+      
+      p= predict(t, c[,input$clima])
+      
+      cc=  c(cor(p,c[,input$sp]), RMSE(p,c[,input$sp]))
+     
+      cc
+    })
+    
+    
+    observeEvent(input$go2,{
+      if(input$data=="Raw"){
+        dn=as.data.frame(x2n)
+      }
+      
+      if(input$data=="Seasonal"){
+        dn=lapply( dsn,normalize)
+        dn=as.data.frame(dn)
+      }
+      
+      output$distPlot6 <- renderPlot({
+        o=dn
+        
+        e<- sample(1:nrow(dn), floor( 0.75*nrow(dn)))
+        dn=dn[e,] 
+        
+        
+        t <- avNNet(dn[,input$sp]~.,data = dn[,input$clima],type="avNNet",
+                    linout = TRUE,size=input$grid1,decay=input$grid2,bag = T,repeats =input$grid3)
+        
+        
+        an=input$binsn[1];bn=input$binsn[2]
+        p= predict(t,o[an:bn,input$clima])
+        plot(an:bn,col = "red",type="l",ylim=c(0,1),xlab = "Time (Months)",ylab = paste(input$data,"Ocurrence"))
+        lines(o[an:bn,input$sp] ,col="black")
+        
+        lines(p ,col="red")
+        
+        
+       
+        
+        
+        
+      })
+      
+      
+      
+      
+      
+    
+    })
+    
+    
+    })
+  
+  
+  
   
   output$distPlot <- renderPlot({
     
