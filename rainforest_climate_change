@@ -1,0 +1,1092 @@
+
+library(shiny)
+library(shinydashboard)
+library(ggplot2)
+library(shinyWidgets)
+library(synchrony)
+library(plotly)
+library(WaveletComp)
+library(wavelets)
+library(readr)
+library(plotly)
+library(MASS)
+library(vegan)
+library(ggfortify)
+
+
+
+
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+x2    <-  read.csv("datfull.csv")
+x<-lapply(x2[,11:ncol(x2)],normalize)
+x=as.data.frame(x)
+clima<-lapply(x2[,3:10],normalize)
+clima=as.data.frame(clima)
+d= lapply(x,ts,frequency=5)
+de=lapply(d,stl,s.window="periodic")
+e= lapply(clima,ts,frequency=12)
+ed=lapply(e,stl,s.window="periodic")
+ENSO <- clima[,8]
+
+
+
+normalize <- function(x) { 
+  return((x - min(x)) / (max(x) - min(x)))
+}
+
+x <- read.csv("dataSaul2018.csv")
+
+d<-x[,3:40]
+
+x2<-lapply(x[,3:ncol(x)],normalize)
+d<-lapply(x2,ts,frequency=12)
+d<-lapply(d,stl,s.window="periodic")
+d<-data.frame(d$precip$time.series[,2],d$rad$time.series[,2],d$temp$time.series[,2],d$heat$time.series[,2],d$s_mois0_10$time.series[,2],d$s_mois10_200$time.series[,2],d$hum$time.series[,2],d$NOI$time.series[,2],d$A.fendleri$time.series[,2],d$P.tovarense$time.series[,2],d$H.moritziana$time.series[,2],d$R.grandis$time.series[,2],d$C.tremadena$time.series[,2],
+              d$B.reticulata$time.series[,2],d$V..ferrugia$time.series[,2],d$P.fendleri$time.series[,2],d$G.olfenciana$time.series[,2],d$E.amazonicum$time.series[,2],d$M.dodecandra$time.series[,2],d$G.latifolia$time.series[,2],d$T.rubriverbium$time.series[,2],d$E.americanus$time.series[,2],d$Viburnum.timoides.var.venezuelense$time.series[,2],d$Aspidosperma.fendleri$time.series[,2],d$Protium..tovarense$time.series[,2],
+              d$Hyronima..moritziana$time.series[,2],d$Richeria..grandis$time.series[,2],d$Caracasia.tremadena$time.series[,2],d$Byrsonima.reticulata$time.series[,2],
+              d$Vismia.ferruginea$time.series[,2],d$Palicurea.fendleri$time.series[,2],d$Guapira.olfersiana$time.series[,2],d$Erytroxylum.amazonicum$time.series[,2],
+              d$Miconea.dodecandra$time.series[,2],d$Gaffenridia.latifolia$time.series[,2],d$Tretrorchidium.rubriverbium$time.series[,2],d$Eliocarpus.americanus$time.series[,2],
+              d$Viburnum.timoides.var.venezuelense.1$time.series[,2])
+colnames(d)<-colnames(x[,3:ncol(x)])
+
+
+
+
+header <- dashboardHeader(title = "RconRo")
+
+sidebar <- dashboardSidebar(
+  
+  sidebarMenu(
+    # Setting id makes input$tabs give the tabName of currently-selected tab
+    id = "tabs",
+    
+    menuItem("Introducción", tabName = "intro"
+             
+    ),
+    
+    menuItem("Análisis", icon = icon("bar-chart-o"), tabName = "lisis",
+             
+             menuSubItem("Series temporales", tabName = "subitem2"),
+             menuSubItem("Análisis de Wavelet", tabName = "subitem3"),
+             menuSubItem("Sincronía", tabName = "subitem1")
+             
+             
+    )
+    
+    
+    
+  )
+)
+
+body <- dashboardBody(
+  
+  tabItems(
+    
+    tabItem("intro",
+            img(
+              src = "my_logo.png",
+              height = 150,
+              width = 75
+              
+            ),
+            
+           h5("Introducción:"),
+            
+            h5("Nota del autor: Este es un proyecto científico y de divulgación, parte de un trabajo de maestría y parte blog de la página RconRo. El objetivo es entender los efectos del cambio climático en los eventos reproductivos (floración y fructificación) de 15 especies de plantas del bosque nublado, en la Cordillera de la Costa, Venezuela. Primero se hará un estudio de la data, desde un exploración inicial, hasta algoritmos que predigan las tendencia futuras del bosque. La información que se adquira puede ser útil a la hora de tomar decisiones de conservación y adaptación al cambio climático")   
+            
+            
+    ),
+    
+    tabItem("subitem1",
+            
+            
+         tabsetPanel(
+              
+              
+          tabPanel("Componente interanual", 
+                   selectInput("var","Variable del clima (Negras)",colnames(d[,1:8])),
+                   selectInput("sp","Flores (Naranjas)", colnames(d[,9:23]),selected = "P.fendleri"),
+                   selectInput("var2","Frutos (Moradas)",colnames(d[,24:ncol(d)]),selected = "Palicurea.fendleri"),
+                   
+          checkboxInput("data","Usar el componente interanual (uncheck para data cruda)",value = TRUE),
+          sliderInput("range", "Meses desde 1983 a 2016:",min = 1, max = nrow(d),value = c(1,nrow(d))),
+          plotOutput("distPlot")
+          
+          ),
+          
+          tabPanel("Componente estacional",
+         h5("Análisis Wavelet para evaluar cambios en los patrones estacionales con respecto al tiempo (eje x)"),
+          selectInput("selection3", "Variables estacionales:",
+                      choices = colnames(d),selected = "A.fendleri"),
+          plotOutput("distPlot3")
+          
+          )
+          
+          )
+            
+         
+              
+              
+              
+            
+            
+    ),
+    
+    tabItem("subitem2",
+            
+            
+            sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,200)),textOutput("SliderText"),
+            selectInput("selection2", "Phenophase:",
+                        choices = c("Flowering","Fruiting"),selected = "Flowering"),
+            selectInput("selection", "Time-series component:",
+                        choices = c("trend","seasonal","remainder","raw"),selected = "trend"),
+            
+            plotOutput("distPlot4"),
+            
+            h3("Species"),
+            checkboxInput("showsp1","A. fendleri",value = F),
+            checkboxInput("showsp2","P. tovarense",value = F),
+            checkboxInput("showsp3","H. moritziana",value = F),
+            checkboxInput("showsp4","R. grandis",value = F),
+            checkboxInput("showsp5","C. tremadena",value = T),
+            checkboxInput("showsp6","B. reticulata",value = F),
+            checkboxInput("showsp7","V. ferrugia",value = T),
+            checkboxInput("showsp8","P. fendleri",value = F),
+            checkboxInput("showsp9","G. olfenciana",value = F),
+            checkboxInput("showsp10","E. amazonicum",value = F),
+            checkboxInput("showsp11","M. dodecandra",value = T),
+            checkboxInput("showsp12","G. latifolia",value = F),
+            checkboxInput("showsp13","T. rubriverbium",value = F),
+            checkboxInput("showsp14","E. americanus",value =T),
+            checkboxInput("showsp15","V. timoides",value = F),
+            
+            h3("Climate variables"),
+            checkboxInput("enso","ENSO",value = F),
+            checkboxInput("prec","Precipitation",value = F),
+            checkboxInput("temp","Temperature",value = F),
+            checkboxInput("mois","Soil moisture",value = F),
+            checkboxInput("hum","Humidity",value = F)
+            
+            
+            
+           
+            
+            
+    ),
+    tabItem("subitem3"
+           
+          
+            
+    )
+  ),
+  h5("App creada por: Lic. Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
+  h5("Aplicación para anáisis de datos en tesis de maestría en Ecología"),
+  h5("Tutor: Dr. Saúl Flores"),
+  h5("Colaboradores: Dr. Carlos Mendez, Dra. Esther Gutierrez, Dr. Otto Rendón"),
+  h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC), 2019"),
+  h5("Derechos Reservados")
+)
+
+server <- function(input, output) {
+  
+  output$distPlot <- renderPlot({
+    
+    a=input$range[1];b=input$range[2]
+    if (input$data==T){d=d}
+    if (input$data==F){d=x}
+    t1<-d[a:b,input$sp]
+    t2<-d[a:b,input$var]
+    t3<-d[a:b,input$var2]
+    
+    mx1<-find.minmax(t1)
+    mx2<-find.minmax(t2)
+    mx3<-find.minmax(t3)
+    
+    
+    x<-a:b
+    plot (x,t3, t="l",col="purple",ylim=c(0,max(c(t1,t2,t3))),xlab="Meses",main = input$sp,
+          ylab="Tendencia interanual escalada", panel.first = grid((b-a)/10,4))
+    lines(x,t1,col="orange")
+    lines(x,t2)
+    points(x[mx2$maxs$index],t2[mx2$maxs$index],col="black",pch=2)
+    points(x[mx1$maxs$index],t1[mx1$maxs$index],col="orange",pch=2)
+    points(x[mx3$maxs$index],t3[mx3$maxs$index],col="purple",pch=2)
+    points(x[mx2$mins$index],t2[mx2$mins$index],col="black")
+    points(x[mx1$mins$index],t1[mx1$mins$index],col="orange")
+    points(x[mx3$mins$index],t3[mx3$mins$index],col="purple")
+    
+    
+  })
+  
+  output$distPlot3 <- renderPlot({
+    
+    my.w <- analyze.wavelet(d, input$selection3,
+                            loess.span = 0,
+                            dt = 1,
+                            lowerPeriod = 10, upperPeriod = 100,
+                            make.pval = TRUE, n.sim = 10)
+    
+    wt.image(my.w
+             , color.key = "interval", n.levels = 250,
+             legend.params = list(lab = "wavelet power levels"),
+             periodlab = "Periodo (meses)")
+    
+  })
+  
+  output$distPlot4 <- renderPlot({
+    
+    a=input$range2[1];b=input$range2[2]
+    
+    h=ENSO
+    plot(h[a:b],xlab = "Time (Months)",ylab = "Frequency",type = "n")
+    
+    if(input$selection2=="Flowering"){
+      if(input$selection=="trend"){
+          
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$A.fendleri$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp2){
+          h=de$P.tovarense$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$H.moritziana$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$R.grandis$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$C.tremadena$time.series[,2]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$B.reticulata$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$V..ferrugia$time.series[,2]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$P.fendleri$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$G.olfenciana$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$E.amazonicum$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$M.dodecandra$time.series[,2]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$G.latifolia$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$T.rubriverbium$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$E.americanus$time.series[,2]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$prec){
+          h=ed$precip$time.series[,2]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$NOI$time.series[,2]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,2]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,2]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,2]
+          lines(h[a:b],col="red")}
+        
+        
+      }
+      
+      if(input$selection=="seasonal"){
+        
+        h=ENSO*0.01
+        
+        plot(h[a:b],ylim = c(-0.05,0.05),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$A.fendleri$time.series[,1]
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=de$P.tovarense$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$H.moritziana$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$R.grandis$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$C.tremadena$time.series[,1]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$B.reticulata$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$V..ferrugia$time.series[,1]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$P.fendleri$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$G.olfenciana$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$E.amazonicum$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$M.dodecandra$time.series[,1]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$G.latifolia$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$T.rubriverbium$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$E.americanus$time.series[,1]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense$time.series[,1]
+          lines(h[a:b])} 
+        
+        if(input$prec==T){
+          h=ed$PCPN$time.series[,1]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$nino4$time.series[,1]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,1]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,1]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,1]
+          lines(h[a:b],col="red")}
+        
+        
+      } 
+      
+      if(input$selection=="remainder"){
+        
+        h=ENSO
+        
+        plot(h[a:b],ylim = c(-0.5,0.5),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$A.fendleri$time.series[,3]
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=de$P.tovarense$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$H.moritziana$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$R.grandis$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$C.tremadena$time.series[,3]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$B.reticulata$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$V..ferrugia$time.series[,3]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$P.fendleri$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$G.olfenciana$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$E.amazonicum$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$M.dodecandra$time.series[,3]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$G.latifolia$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$T.rubriverbium$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$E.americanus$time.series[,3]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense$time.series[,3]
+          lines(h[a:b])} 
+        
+        if(input$prec){
+          h=ed$PCPN$time.series[,3]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$NOI$time.series[,3]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,3]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,3]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,3]
+          lines(h[a:b],col="red")}
+        
+        
+        
+      }
+      
+      if(input$selection=="raw"){
+        
+        h=ENSO
+        
+        plot(h[a:b],ylim = c(0,1),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=x$A.fendleri
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=x$P.tovarense
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=x$H.moritziana
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=x$R.grandis
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=x$C.tremadena
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=x$B.reticulata
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=x$V..ferrugia
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=x$P.fendleri
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=x$G.olfenciana
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=x$E.amazonicum
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=x$M.dodecandra
+          lines(h[a:b])}
+        
+        if(input$showsp12){
+          h=x$G.latifolia
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=x$T.rubriverbium
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=x$E.americanus
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=x$Viburnum.timoides.var.venezuelense
+          lines(h[a:b])} 
+        
+        if(input$prec){
+          h=clima$precip
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=clima$NOI
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=clima$hum
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=clima$s_mois0_10
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        if(input$temp){
+          h=clima$temp
+          lines(h[a:b],col="red")}
+      }
+      
+    }
+    if(input$selection2=="Fruiting"){
+      if(input$selection=="trend"){
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$Aspidosperma.fendleri$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp2){
+          h=de$Protium..tovarense$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$Hyronima..moritziana$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$Richeria..grandis$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$Caracasia.tremadena$time.series[,2]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$Byrsonima.reticulata$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$Vismia.ferruginea$time.series[,2]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$Palicurea.fendleri$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$Guapira.olfersiana$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$Erytroxylum.amazonicum$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$Miconea.dodecandra$time.series[,2]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$Gaffenridia.latifolia$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$Tretrorchidium.rubriverbium$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$Eliocarpus.americanus$time.series[,2]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense.1$time.series[,2]
+          lines(h[a:b])}
+        
+        if(input$prec){
+          h=ed$precip$time.series[,2]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$NOI$time.series[,2]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,2]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,2]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,2]
+          lines(h[a:b],col="red")}
+        
+        
+      }
+      
+      if(input$selection=="seasonal"){
+        
+        h=ENSO*0.01
+        
+        plot(h[a:b],ylim = c(-0.05,0.05),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$A.fendleri$time.series[,1]
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=de$P.tovarense$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$H.moritziana$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$R.grandis$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$C.tremadena$time.series[,1]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$B.reticulata$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$V..ferrugia$time.series[,1]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$P.fendleri$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$G.olfenciana$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$E.amazonicum$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$M.dodecandra$time.series[,1]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$G.latifolia$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$T.rubriverbium$time.series[,1]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$E.americanus$time.series[,1]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense$time.series[,1]
+          lines(h[a:b])} 
+        
+        if(input$prec==T){
+          h=ed$PCPN$time.series[,1]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$nino4$time.series[,1]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,1]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,1]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,1]
+          lines(h[a:b],col="red")}
+        
+        
+      } 
+      
+      if(input$selection=="remainder"){
+        
+        h=ENSO
+        
+        plot(h[a:b],ylim = c(-0.5,0.5),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=de$A.fendleri$time.series[,3]
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=de$P.tovarense$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=de$H.moritziana$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=de$R.grandis$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=de$C.tremadena$time.series[,3]
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=de$B.reticulata$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=de$V..ferrugia$time.series[,3]
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=de$P.fendleri$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=de$G.olfenciana$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=de$E.amazonicum$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=de$M.dodecandra$time.series[,3]
+          lines(h[a:b],col="yellow")}
+        
+        if(input$showsp12){
+          h=de$G.latifolia$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=de$T.rubriverbium$time.series[,3]
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=de$E.americanus$time.series[,3]
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=de$Viburnum.timoides.var.venezuelense$time.series[,3]
+          lines(h[a:b])} 
+        
+        if(input$prec){
+          h=ed$PCPN$time.series[,3]
+          
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=ed$NOI$time.series[,3]
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=ed$hum$time.series[,3]
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=ed$s_mois0_10$time.series[,3]
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        
+        
+        if(input$temp){
+          h=ed$temp$time.series[,3]
+          lines(h[a:b],col="red")}
+        
+        
+        
+      }
+      
+      if(input$selection=="raw"){
+        
+        h=ENSO
+        
+        plot(h[a:b],ylim = c(0,1),xlab = "Time (Months)",ylab = "Frequency",type = "n")
+        
+        if(input$enso){
+          
+          lines(h[a:b],col="black")}
+        
+        if(input$showsp1){
+          h=x$A.fendleri
+          lines(h[a:b])
+        }
+        
+        if(input$showsp2){
+          h=x$P.tovarense
+          lines(h[a:b])}
+        
+        if(input$showsp3){
+          h=x$H.moritziana
+          lines(h[a:b])}
+        
+        if(input$showsp4){
+          h=x$R.grandis
+          lines(h[a:b])}
+        
+        if(input$showsp5){
+          h=x$C.tremadena
+          lines(h[a:b],col="red")}
+        
+        if(input$showsp6){
+          h=x$B.reticulata
+          lines(h[a:b])}
+        
+        if(input$showsp7){
+          h=x$V..ferrugia
+          lines(h[a:b],col="blue")}
+        
+        if(input$showsp8){
+          h=x$P.fendleri
+          lines(h[a:b])}
+        
+        if(input$showsp9){
+          h=x$G.olfenciana
+          lines(h[a:b])}
+        
+        if(input$showsp10){
+          h=x$E.amazonicum
+          lines(h[a:b])}
+        
+        if(input$showsp11){
+          h=x$M.dodecandra
+          lines(h[a:b])}
+        
+        if(input$showsp12){
+          h=x$G.latifolia
+          lines(h[a:b])}
+        
+        if(input$showsp13){
+          h=x$T.rubriverbium
+          lines(h[a:b])}
+        
+        if(input$showsp14){
+          h=x$E.americanus
+          lines(h[a:b],col="green")}
+        
+        if(input$showsp15){
+          h=x$Viburnum.timoides.var.venezuelense
+          lines(h[a:b])} 
+        
+        if(input$prec){
+          h=clima$precip
+          
+          lines(h[a:b],col="blue")
+        }
+        
+        if(input$enso){
+          
+          h=clima$NOI
+          
+          lines(h[a:b])
+        }
+        
+        if(input$hum){
+          h=clima$hum
+          lines(h[a:b],col="grey")
+        }
+        
+        if(input$mois){
+          
+          h=clima$s_mois0_10
+          
+          lines(h[a:b],col="brown")
+        }
+        
+        if(input$temp){
+          h=clima$temp
+          lines(h[a:b],col="red")}
+      }
+      
+    }
+  })
+  
+  
+  
+}
+
+
+
+
+shinyApp(
+  ui = dashboardPage(header, sidebar, body),
+  server = server
+)
