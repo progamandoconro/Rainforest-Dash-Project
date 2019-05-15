@@ -1,4 +1,5 @@
 
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -31,7 +32,7 @@ e= lapply(clima,ts,frequency=12)
 ed=lapply(e,stl,s.window="periodic")
 ENSO <- clima[,8]
 
-
+x3    <-  read.csv("dataSaul2018.csv")
 
 normalize <- function(x) { 
   return((x - min(x)) / (max(x) - min(x)))
@@ -69,9 +70,9 @@ sidebar <- dashboardSidebar(
     
     menuItem("Análisis", icon = icon("bar-chart-o"), tabName = "lisis",
              
-             menuSubItem("Series temporales", tabName = "subitem2"),
-             menuSubItem("Análisis de Wavelet", tabName = "subitem3"),
-             menuSubItem("Sincronía", tabName = "subitem1")
+             menuSubItem("Exploratorio", tabName = "subitem2"),
+             menuSubItem("Series temporales", tabName = "subitem1"),
+             menuSubItem("Análisis Wavelet", tabName = "subitem3")
              
              
     )
@@ -118,10 +119,44 @@ body <- dashboardBody(
           ),
           
           tabPanel("Componente estacional",
-         h5("Análisis Wavelet para evaluar cambios en los patrones estacionales con respecto al tiempo (eje x)"),
-          selectInput("selection3", "Variables estacionales:",
-                      choices = colnames(d),selected = "A.fendleri"),
-          plotOutput("distPlot3")
+                   
+                   
+                   sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,200)),textOutput("SliderText"),
+                   selectInput("selection2", "Phenophase:",
+                               choices = c("Flowering","Fruiting"),selected = "Flowering"),
+                   selectInput("selection", "Time-series component:",
+                               choices = c("trend","seasonal","remainder","raw"),selected = "seasonal"),
+                   
+                   plotOutput("distPlot4"),
+                   
+                   h3("Species"),
+                   checkboxInput("showsp1","A. fendleri",value = F),
+                   checkboxInput("showsp2","P. tovarense",value = F),
+                   checkboxInput("showsp3","H. moritziana",value = F),
+                   checkboxInput("showsp4","R. grandis",value = F),
+                   checkboxInput("showsp5","C. tremadena",value = T),
+                   checkboxInput("showsp6","B. reticulata",value = F),
+                   checkboxInput("showsp7","V. ferrugia",value = T),
+                   checkboxInput("showsp8","P. fendleri",value = F),
+                   checkboxInput("showsp9","G. olfenciana",value = F),
+                   checkboxInput("showsp10","E. amazonicum",value = F),
+                   checkboxInput("showsp11","M. dodecandra",value = T),
+                   checkboxInput("showsp12","G. latifolia",value = F),
+                   checkboxInput("showsp13","T. rubriverbium",value = F),
+                   checkboxInput("showsp14","E. americanus",value =T),
+                   checkboxInput("showsp15","V. timoides",value = F),
+                   
+                   h3("Climate variables"),
+                   checkboxInput("enso","ENSO",value = F),
+                   checkboxInput("prec","Precipitation",value = F),
+                   checkboxInput("temp","Temperature",value = F),
+                   checkboxInput("mois","Soil moisture",value = F),
+                   checkboxInput("hum","Humidity",value = F)
+                   
+                   
+                   
+                   
+         
           
           )
           
@@ -137,48 +172,21 @@ body <- dashboardBody(
     
     tabItem("subitem2",
             
-            
-            sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,200)),textOutput("SliderText"),
-            selectInput("selection2", "Phenophase:",
-                        choices = c("Flowering","Fruiting"),selected = "Flowering"),
-            selectInput("selection", "Time-series component:",
-                        choices = c("trend","seasonal","remainder","raw"),selected = "trend"),
-            
-            plotOutput("distPlot4"),
-            
-            h3("Species"),
-            checkboxInput("showsp1","A. fendleri",value = F),
-            checkboxInput("showsp2","P. tovarense",value = F),
-            checkboxInput("showsp3","H. moritziana",value = F),
-            checkboxInput("showsp4","R. grandis",value = F),
-            checkboxInput("showsp5","C. tremadena",value = T),
-            checkboxInput("showsp6","B. reticulata",value = F),
-            checkboxInput("showsp7","V. ferrugia",value = T),
-            checkboxInput("showsp8","P. fendleri",value = F),
-            checkboxInput("showsp9","G. olfenciana",value = F),
-            checkboxInput("showsp10","E. amazonicum",value = F),
-            checkboxInput("showsp11","M. dodecandra",value = T),
-            checkboxInput("showsp12","G. latifolia",value = F),
-            checkboxInput("showsp13","T. rubriverbium",value = F),
-            checkboxInput("showsp14","E. americanus",value =T),
-            checkboxInput("showsp15","V. timoides",value = F),
-            
-            h3("Climate variables"),
-            checkboxInput("enso","ENSO",value = F),
-            checkboxInput("prec","Precipitation",value = F),
-            checkboxInput("temp","Temperature",value = F),
-            checkboxInput("mois","Soil moisture",value = F),
-            checkboxInput("hum","Humidity",value = F)
-            
-            
-            
+           sliderInput("range3", "Years from 1983 to 2017:",min = 1, max = 420, value = c(1,420)),
+            selectInput("sel3", "Phenophase:",
+                       choices = c("Flowering","Fruiting"),selected = "Flowering"),
+           plotlyOutput("distPlot2")
            
+       
             
             
     ),
-    tabItem("subitem3"
+    tabItem("subitem3",
            
-          
+            h5("Análisis Wavelet para evaluar cambios en los patrones estacionales con respecto al tiempo (eje x)"),
+            selectInput("selection3", "Variables estacionales:",
+                        choices = colnames(d),selected = "A.fendleri"),
+            plotOutput("distPlot3")
             
     )
   ),
@@ -219,6 +227,32 @@ server <- function(input, output) {
     points(x[mx3$mins$index],t3[mx3$mins$index],col="purple")
     
     
+  })
+  
+  output$distPlot2<-renderPlotly({
+    
+    
+    if(input$sel3=="Flowering"){
+      a3=input$range3[1]; b3=input$range3[2]
+      pcaCars<-princomp(x[a3:b3,1:15],cor = F)
+    }
+    if(input$sel3=="Fruiting"){
+      a3=input$range3[1];b3=input$range3[2]
+      pcaCars<-princomp(x[a3:b3,16:30],cor = F)
+    }
+    carsHC <- hclust(dist(pcaCars$scores), method = "ward.D2")
+    carsClusters <- cutree(carsHC, k = 3)
+    carsDf <- data.frame(pcaCars$scores, "cluster" = factor(carsClusters))
+    carsDf <- transform(carsDf, cluster_name = paste("Cluster",carsClusters))
+    
+    p <- plot_ly(carsDf, x = carsDf$Comp.1 , y = carsDf$Comp.2,
+                 type = "scatter", text =paste( ENSO[a3:b3],x3$month[a3:b3],x3$year[a3:b3]),
+                 color = x3$year[a3:b3],size =  x3$month [a3:b3],alpha = 0.75) 
+    
+    p <- layout(p, title = "PCA Clusters from rainforest phenology data", 
+                xaxis = list(title = "PC 1"),
+                yaxis = list(title = "PC 2"))
+    p
   })
   
   output$distPlot3 <- renderPlot({
