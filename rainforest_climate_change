@@ -1,6 +1,4 @@
 
-
-
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -271,29 +269,13 @@ body <- dashboardBody(
     ),
     tabItem("subitem4",
             
-            actionButton("go1","Train model"),
-            h5("Cross-validation: Averaged Correlation and RMSE between predictions and actual data"),
-            textOutput("texto"),
-            actionButton("go2","Predict"),
-            
-            
-            plotOutput("distPlot6"),
-            
-            selectInput("data","Type of data",c("Raw"),selected = "Raw"),
-            selectInput("sp","Output neurons",colnames(nd[,c(12,13,15:ncol(nd))]),multiple = F ,selected = "P.fendleri"),
-            selectInput("clima","Income neurons ",colnames(nd),multiple = T,selected = colnames(nd[,1:8])),
-            h5("Grid of tuning parameters"),
-            numericInput("grid1","Hidden neurons",1),
-            numericInput("grid2","Decay",0.1),
-            numericInput("grid3","Number of models to train",5),
-            
-            h5("Prediction matrix:"),
-            sliderInput("binsn", "Section of real data", min = 1, max = nrow(nd), value = c(300,420)),
+            h1("Atención: Para entrenar y visualizar resultados dirigete a este", a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
+            h1("Atención: Para entrenar y visualizar resultados dirigete a este", a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
             
            
             
             
-            h3("Redes Neuronales Artificiales para predecir la tendencia interanual de los eventos reproductivos de P. fendleri en el bosque", align="center"),
+            h4("Redes Neuronales Artificiales para predecir la tendencia interanual de los eventos reproductivos de P. fendleri en el bosque", align="center"),
             h5("Línea contínua: data real, Línea cortada: predicciones", align="left"),
             
             img(src="ann_pred.png")
