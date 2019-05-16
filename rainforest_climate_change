@@ -1,4 +1,5 @@
 
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -71,56 +72,31 @@ sidebar <- dashboardSidebar(
     # Setting id makes input$tabs give the tabName of currently-selected tab
     id = "tabs",
     
-    menuItem("Portada", tabName = "intro"
+    menuItem("Cover", tabName = "intro"
              
     ),
-    menuItem("Introducción", tabName = "intro2"
+    menuItem("Introduction", tabName = "intro2"
              
     ),
     
-    menuItem("Análisis", icon = icon("bar-chart-o"), tabName = "lisis",
+    menuItem("Analysis", icon = icon("bar-chart-o"), tabName = "lisis",
              
-             menuSubItem("Exploratorio", tabName = "subitem2"),
-             menuSubItem("Series temporales", tabName = "subitem1"),
-             menuSubItem("Análisis Wavelet", tabName = "subitem3")
+             menuSubItem("Exploratory", tabName = "subitem2"),
+             menuSubItem("Time Series", tabName = "subitem1"),
+             menuSubItem("Wavelets", tabName = "subitem3")
              
              
     ),
     menuItem("Machine Learning", icon = icon("bar-chart-o"), tabName = "lisis",
              
-             menuSubItem("ANN", tabName = "subitem4"),
-             menuSubItem("SVM", tabName = "subitem5"),
-             menuSubItem("Random Forest", tabName = "subitem6")
-             
-             
-    ),
-    
-    menuItem("Síntesis", icon = icon("bar-chart-o"), tabName = "lisis",
-             
-             menuSubItem("Resultados", tabName = "subitem7"),
-             menuSubItem("Discusión", tabName = "subitem8"),
-             menuSubItem("Conclusiones", tabName = "subitem9")
-             
-             
-    ),
-    
-    menuItem("Métodos", icon = icon("bar-chart-o"), tabName = "lisis",
-             
-             menuSubItem("Data de Campo", tabName = "subitem7"),
-             menuSubItem("Data climática", tabName = "subitem8"),
-             menuSubItem("Estadística", tabName = "subitem9")
-             
-             
-    ),
-    
-    menuItem("Referencias", icon = icon("bar-chart-o"), tabName = "lisis",
-             
-             menuSubItem("Bosque y Cambio Climático", tabName = "subitem7"),
-             menuSubItem("Machine Learning", tabName = "subitem8"),
-             menuSubItem("Series temporales", tabName = "subitem9")
-             
+             menuSubItem("ANN", tabName = "subitem4")
              
     )
+    
+    
+    
+   
+   
     
     
     
@@ -135,19 +111,26 @@ body <- dashboardBody(
             
             
             
-           h1("Predicciones computacionales de los eventos reproductivos futuros en 15 especies de plantas del bosque nublado de la Cordillera de la Costa, Venezuela",align="center"),
+           h1("Machine Learning predictions on rainforest plant reproduction events under climate change in Cordillera de la Costa, Venezuela",align="center"),
            h5("Rodrigo Díaz Lupanow, Esther Gutierrez, Otto Rendón, Carlos Méndez, Saúl Flores",align="center"),
            h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC)",align="center"),
            h5("programandoconro@gmail.com",align="center"),
            img(
              src = "global.png"
              
-           ),
+           )
             
-            h5("Nota del autor: Este es un proyecto científico y de divulgación, parte de un trabajo de maestría y parte blog de la página RconRo. El objetivo es entender los efectos del cambio climático en los eventos reproductivos (floración y fructificación) de 15 especies de plantas del bosque nublado, en la Cordillera de la Costa, Venezuela. Primero se hará un estudio de la data, desde un exploración inicial, hasta algoritmos que predigan las tendencia futuras del bosque. La información que se adquira puede ser útil a la hora de tomar decisiones de conservación y adaptación al cambio climático")   
+            #h5("Nota del autor: Este es un proyecto científico y de divulgación, parte de un trabajo de maestría y parte blog de la página RconRo. El objetivo es entender los efectos del cambio climático en los eventos reproductivos (floración y fructificación) de 15 especies de plantas del bosque nublado, en la Cordillera de la Costa, Venezuela. Primero se hará un estudio de la data, desde un exploración inicial, hasta algoritmos que predigan las tendencia futuras del bosque. La información que se adquira puede ser útil a la hora de tomar decisiones de conservación y adaptación al cambio climático")   
             
             
     ),
+    
+    tabItem("intro2",
+           h4("Lifecycle dynamics of organisms, or phenology, is highly attached to habitat conditions (Zhao et al., 2013). In this sense, plant phenology had been use as reliable bioindicator of climate change (Gordo and Sanz, 2010). Temperature is known to strongly control flowering, both alone and through interactions with other variables, such as photoperiod (Partanen et al. 1998). Rainfall and water availability are also recognized to affect phenology, with consequences on ecosystem structure (Penuelas et al., 2009).  "),
+           h4("Reproductive population dynamics can affect community through alteration of interspecific relationships, such as depredation, parasitism and mutualism (van Schaik et al. 1993). Climatic patterns, such as El Niño Southern Oscillation (ENSO) had been proved to affect plants (Fauset et al. 2012), increase masse coral bleaching (Stone et al. 1999), promote vari- ability in turtles nesting numbers (Solow et al. 2002), change fire regimes in forest communities (Beckage et al. 2003), also assumed to be responsible of ungulates abundance decline in Africa (Ogutu and Owen-Smith 2003), and it is related to cathastrofic events, such as hurricanes (Smith et al. 2007) and droughts or floods (Peixoto 1993), depending on location. The North Atlantic Oscillation (NAO) had been shown to have impact on vegetation productivity in Africa (Wang 2003), on plankton dynamics in European lakes (Straile and Adrian 2000), and on many other ecosystems of Norhern Hemisphere (Blenckner and Hillebrand 2002), but its effect has not been evaluated in the Northern South America tropical rainforest. ENSO’ extreme phases, known as El Niño and La Niña, can be more intense or remain longer depending on other oscillations, such as NAO (Giannini et al. 2001). "),
+          h4("Moreover, accumulation of greenhouse-gases is predicted to affect ENSO, with longer and recurrent El Niño and La Niña events (Cai et al. 2014). As this strong influence of human alteration on weather is significantly affecting vegetation around the world (Mourtzinis et al. 2016), recognizing possi- ble future scenarios in which plant reproduction is prone to be negatively affected is critical for ecosystem conservation. Global mean temperature is rising and it is frequently associated with earlier plant reproduction events, such as flowering (Cleland et al. 2007). In the Mediterranean region, climate change has been proved to shifted plant phenology (Gordo and Sanz 2010). This climate change alterations on phenology has also been proved for fishes (Asch 2015) and birds (Sparks 1999). But, while reports are abundant for Europe, U.S, China or Japan, the tropics are limited due to the absence of long-term data (Zhao et al. 2013). In the case of Northern South America, this lack is even bigger, but while the region is one of the most megadiverse of the planet, climate change repercussions on its ecosystems are poorly understood.  We aim to understand future climate change threats to plant community.")
+           
+            ),
     
     tabItem("subitem1",
             
@@ -155,18 +138,18 @@ body <- dashboardBody(
          tabsetPanel(
               
               
-          tabPanel("Componente interanual", 
+          tabPanel(" Trend", 
                    selectInput("var","Variable del clima (Negras)",colnames(d[,1:8])),
                    selectInput("sp","Flores (Naranjas)", colnames(d[,9:23]),selected = "P.fendleri"),
                    selectInput("var2","Frutos (Moradas)",colnames(d[,24:ncol(d)]),selected = "Palicurea.fendleri"),
                    
-          checkboxInput("data","Usar el componente interanual (uncheck para data cruda)",value = TRUE),
-          sliderInput("range", "Meses desde 1983 a 2016:",min = 1, max = nrow(d),value = c(1,nrow(d))),
+          checkboxInput("data","Use trend (uncheck for raw data)",value = TRUE),
+          sliderInput("range", "Months 1983 - 2016:",min = 1, max = nrow(d),value = c(1,nrow(d))),
           plotOutput("distPlot")
           
           ),
           
-          tabPanel("Componente estacional",
+          tabPanel("Seasonal",
                    
                    
                    sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,200)),textOutput("SliderText"),
@@ -230,13 +213,13 @@ body <- dashboardBody(
            
       ),
       
-      tabPanel( "Correlaciones",
+      tabPanel( "Correlations",
                 
-                selectInput("var211","Variables a incluir en primera imagen:",
+                selectInput("var211","Variables:",
                             colnames(d4),multiple = T,selected = colnames(d4[,c(12,13,15:25)])),
-                sliderInput("range11", "Meses a incluir (desde 1983 a 2017):",
+                sliderInput("range11", "Months ( 1983 to 2017):",
                             min = 1, max = nrow(d4), value = c(1,146)),
-                checkboxInput("box","Ordenar por cluster"),
+                checkboxInput("box","Cluster"),
                 hr(),
                 plotOutput("distPlot5")
                 
@@ -244,7 +227,7 @@ body <- dashboardBody(
       ),
       
       tabPanel( "MSD3",
-                h5("MSD3 para P. fendleri y variables climáticas"),
+                h5("Example result  MSD3 for P. fendleri and climate"),
                 
                 img(src="msd3d.png")
                 
@@ -261,31 +244,33 @@ body <- dashboardBody(
     ),
     tabItem("subitem3",
            
-            h5("Análisis Wavelet para evaluar cambios en los patrones estacionales con respecto al tiempo (eje x)"),
-            selectInput("selection3", "Variables estacionales:",
+           # h5("Análisis Wavelet para evaluar cambios en los patrones estacionales con respecto al tiempo (eje x)"),
+            selectInput("selection3", "Variables",
                         choices = colnames(d),selected = "A.fendleri"),
             plotOutput("distPlot3")
             
     ),
     tabItem("subitem4",
             
-            h1("Atención: Para entrenar y visualizar resultados dirigete a este", a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
-            h1("Atención: Para entrenar y visualizar resultados dirigete a este", a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
+            h1(tags$b("For real time algorithm training and testing please go to this"), 
+               a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
+            
+           # tags$iframe(src="https://programandoconro.shinyapps.io/ANN_forest/", width=1000,height=2000),
             
            
             
             
-            h4("Redes Neuronales Artificiales para predecir la tendencia interanual de los eventos reproductivos de P. fendleri en el bosque", align="center"),
-            h5("Línea contínua: data real, Línea cortada: predicciones", align="left"),
+            h4("Example result. P. fendleri", align="center"),
+            h5("Solid line: real data, Cutted line: ANN predictions", align="left"),
             
             img(src="ann_pred.png")
             )
   ),
   
-  h5("App creada por: Lic. Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
-  h5("Aplicación para análisis de datos en tesis de maestría en Ecología"),
-  h5("Tutor: Dr. Saúl Flores"),
-  h5("Colaboradores: Dr. Carlos Mendez, Dra. Esther Gutierrez, Dr. Otto Rendón"),
+  h5("App developer: Lic. Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
+  h5("Master degree analysis"),
+  h5("Tutor: PhD. Saúl Flores"),
+  h5("Colaborators: PhD. Carlos Mendez, PhD. Esther Gutierrez, PhD. Otto Rendón"),
   h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC), 2019"),
   h5(" Santa Cruz de Tenerife, Mayo, 2019. Todos los derechos reservados")
 )
