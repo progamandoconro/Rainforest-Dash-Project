@@ -1,5 +1,4 @@
 
-
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -91,11 +90,15 @@ sidebar <- dashboardSidebar(
              
              menuSubItem("ANN", tabName = "subitem4")
              
+    ),
+    
+    
+    menuItem("Predictions", tabName = "lisis",
+             
+             menuSubItem("P. fendleri", tabName = "subitem4")
+    
+    
     )
-    
-    
-    
-   
    
     
     
@@ -221,7 +224,7 @@ body <- dashboardBody(
                             min = 1, max = nrow(d4), value = c(1,146)),
                 checkboxInput("box","Cluster"),
                 hr(),
-                plotOutput("distPlot5")
+                plotOutput("distPlot5",height = "800")
                 
                 
       ),
@@ -252,7 +255,7 @@ body <- dashboardBody(
     ),
     tabItem("subitem4",
             
-            h1(tags$b("For real time algorithm training and testing please go to this"), 
+            h1(tags$b("ATTENTION: For real time algorithm training and testing please go to this"), 
                a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
             
            # tags$iframe(src="https://programandoconro.shinyapps.io/ANN_forest/", width=1000,height=2000),
@@ -260,10 +263,15 @@ body <- dashboardBody(
            
             
             
-            h4("Example result. P. fendleri", align="center"),
+            h3(" P. fendleri Machine Learning predictions ", align="center"),
             h5("Solid line: real data, Cutted line: ANN predictions", align="left"),
             
-            img(src="ann_pred.png")
+            img(src="ann_pred.png"),
+           h3("Precipitación actual (arriba) vs proyecciones 2050 (abajo) para la zona de estudio."),
+           img(src="coore.png"),
+           h3("Floración de P. fendleri bajo escenarios extremos"),
+           img(src="escenarios fendleri.png")
+           
             )
   ),
   
@@ -289,90 +297,31 @@ server <- function(input, output) {
     
     M=cor(d4[a1:b1,input$var211])
     
+    
+    
     corrplot(M,method = "circle",order =  ifelse(input$box==T,  "hclust","alphabet"))
     
     
   })
   
-  observeEvent(input$go1, {
+
     
     
-    if(input$data=="Raw"){
-      dn=as.data.frame(x2n)
-    }
-    
-    if(input$data=="Seasonal"){
-      dn=lapply( dsn,normalize)
-      dn=as.data.frame(dn)
-    
+   
+        
+        
+        
       
-      }
-    
-    
-    output$texto <- renderText({
-      
-      e<- sample(1:nrow(dn), floor( 0.75*nrow(dn)))
-      c<-dn[-e,]
-      dn=dn[e,]
-      
-      
-      
-      t <-  avNNet(dn[,input$sp]~.,data = dn[,input$clima],
-                   type="avNNet",linout = TRUE,size=input$grid1,decay=input$grid2,bag = T,repeats =input$grid3)
-      
-      
-      p= predict(t, c[,input$clima])
-      
-      cc=  c(cor(p,c[,input$sp]), RMSE(p,c[,input$sp]))
-     
-      cc
-    })
-    
-    
-    observeEvent(input$go2,{
-      if(input$data=="Raw"){
-        dn=as.data.frame(x2n)
-      }
-      
-      if(input$data=="Seasonal"){
-        dn=lapply( dsn,normalize)
-        dn=as.data.frame(dn)
-      }
-      
-      output$distPlot6 <- renderPlot({
-        o=dn
-        
-        e<- sample(1:nrow(dn), floor( 0.75*nrow(dn)))
-        dn=dn[e,] 
-        
-        
-        t <- avNNet(dn[,input$sp]~.,data = dn[,input$clima],type="avNNet",
-                    linout = TRUE,size=input$grid1,decay=input$grid2,bag = T,repeats =input$grid3)
-        
-        
-        an=input$binsn[1];bn=input$binsn[2]
-        p= predict(t,o[an:bn,input$clima])
-        plot(an:bn,col = "red",type="l",ylim=c(0,1),xlab = "Time (Months)",ylab = paste(input$data,"Ocurrence"))
-        lines(o[an:bn,input$sp] ,col="black")
-        
-        lines(p ,col="red")
-        
-        
-       
-        
-        
-        
-      })
       
       
       
       
       
     
-    })
     
     
-    })
+    
+    
   
   
   
