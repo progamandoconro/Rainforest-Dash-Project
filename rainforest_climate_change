@@ -1,4 +1,5 @@
 
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -33,6 +34,7 @@ x=as.data.frame(x)
 clima<-lapply(x2[,3:10],normalize)
 clima=as.data.frame(clima)
 d= lapply(x,ts,frequency=5)
+
 de=lapply(d,stl,s.window="periodic")
 e= lapply(clima,ts,frequency=12)
 ed=lapply(e,stl,s.window="periodic")
@@ -86,16 +88,15 @@ sidebar <- dashboardSidebar(
              
              
     ),
-    menuItem("Machine Learning", icon = icon("bar-chart-o"), tabName = "lisis",
+    menuItem("Machine Learning", icon = icon("bar-chart-o"), tabName = "sb3",
              
              menuSubItem("ANN", tabName = "subitem4")
              
     ),
     
     
-    menuItem("Predictions", tabName = "lisis",
-             
-             menuSubItem("P. fendleri", tabName = "subitem4")
+    menuItem("Predictions", tabName = "prd"
+            
     
     
     )
@@ -115,7 +116,7 @@ body <- dashboardBody(
             
             
            h1("Machine Learning predictions on rainforest plant reproduction events under climate change in Cordillera de la Costa, Venezuela",align="center"),
-           h5("Rodrigo Díaz Lupanow, Esther Gutierrez, Otto Rendón, Carlos Méndez, Saúl Flores",align="center"),
+           h5("Rodrigo Díaz Lupanow, Esther Gutierrez, Saúl Flores",align="center"),
            h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC)",align="center"),
            h5("programandoconro@gmail.com",align="center"),
            img(
@@ -131,14 +132,57 @@ body <- dashboardBody(
     tabItem("intro2",
            h4("Lifecycle dynamics of organisms, or phenology, is highly attached to habitat conditions (Zhao et al., 2013). In this sense, plant phenology had been use as reliable bioindicator of climate change (Gordo and Sanz, 2010). Temperature is known to strongly control flowering, both alone and through interactions with other variables, such as photoperiod (Partanen et al. 1998). Rainfall and water availability are also recognized to affect phenology, with consequences on ecosystem structure (Penuelas et al., 2009).  "),
            h4("Reproductive population dynamics can affect community through alteration of interspecific relationships, such as depredation, parasitism and mutualism (van Schaik et al. 1993). Climatic patterns, such as El Niño Southern Oscillation (ENSO) had been proved to affect plants (Fauset et al. 2012), increase masse coral bleaching (Stone et al. 1999), promote vari- ability in turtles nesting numbers (Solow et al. 2002), change fire regimes in forest communities (Beckage et al. 2003), also assumed to be responsible of ungulates abundance decline in Africa (Ogutu and Owen-Smith 2003), and it is related to cathastrofic events, such as hurricanes (Smith et al. 2007) and droughts or floods (Peixoto 1993), depending on location. The North Atlantic Oscillation (NAO) had been shown to have impact on vegetation productivity in Africa (Wang 2003), on plankton dynamics in European lakes (Straile and Adrian 2000), and on many other ecosystems of Norhern Hemisphere (Blenckner and Hillebrand 2002), but its effect has not been evaluated in the Northern South America tropical rainforest. ENSO’ extreme phases, known as El Niño and La Niña, can be more intense or remain longer depending on other oscillations, such as NAO (Giannini et al. 2001). "),
-          h4("Moreover, accumulation of greenhouse-gases is predicted to affect ENSO, with longer and recurrent El Niño and La Niña events (Cai et al. 2014). As this strong influence of human alteration on weather is significantly affecting vegetation around the world (Mourtzinis et al. 2016), recognizing possi- ble future scenarios in which plant reproduction is prone to be negatively affected is critical for ecosystem conservation. Global mean temperature is rising and it is frequently associated with earlier plant reproduction events, such as flowering (Cleland et al. 2007). In the Mediterranean region, climate change has been proved to shifted plant phenology (Gordo and Sanz 2010). This climate change alterations on phenology has also been proved for fishes (Asch 2015) and birds (Sparks 1999). But, while reports are abundant for Europe, U.S, China or Japan, the tropics are limited due to the absence of long-term data (Zhao et al. 2013). In the case of Northern South America, this lack is even bigger, but while the region is one of the most megadiverse of the planet, climate change repercussions on its ecosystems are poorly understood.  We aim to understand future climate change threats to plant community.")
-           
+          h4("Moreover, accumulation of greenhouse-gases is predicted to affect ENSO, with longer and recurrent El Niño and La Niña events (Cai et al. 2014). As this strong influence of human alteration on weather is significantly affecting vegetation around the world (Mourtzinis et al. 2016), recognizing possi- ble future scenarios in which plant reproduction is prone to be negatively affected is critical for ecosystem conservation. Global mean temperature is rising and it is frequently associated with earlier plant reproduction events, such as flowering (Cleland et al. 2007). In the Mediterranean region, climate change has been proved to shifted plant phenology (Gordo and Sanz 2010). This climate change alterations on phenology has also been proved for fishes (Asch 2015) and birds (Sparks 1999). But, while reports are abundant for Europe, U.S, China or Japan, the tropics are limited due to the absence of long-term data (Zhao et al. 2013). In the case of Northern South America, this lack is even bigger, but while the region is one of the most megadiverse of the planet, climate change repercussions on its ecosystems are poorly understood.  We aim to understand future climate change threats to plant community."),
+          h4("Flowering and fruting in 15 species of plants were sampled during a 30 years survey. Following, preliminary results. ")
             ),
     
     tabItem("subitem1",
             
             
          tabsetPanel(
+           
+           
+           tabPanel("TS Decomposition",
+                    
+                    
+                    sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,420)),textOutput("SliderText"),
+                    selectInput("selection2", "Phenophase:",
+                                choices = c("Flowering","Fruiting"),selected = "Flowering"),
+                    selectInput("selection", "Time-series component:",
+                                choices = c("trend","seasonal","remainder","raw"),selected = "seasonal"),
+                    
+                    plotOutput("distPlot4"),
+                    
+                    h3("Species"),
+                    checkboxInput("showsp1","A. fendleri",value = F),
+                    checkboxInput("showsp2","P. tovarense",value = F),
+                    checkboxInput("showsp3","H. moritziana",value = F),
+                    checkboxInput("showsp4","R. grandis",value = F),
+                    checkboxInput("showsp5","C. tremadena",value = T),
+                    checkboxInput("showsp6","B. reticulata",value = F),
+                    checkboxInput("showsp7","V. ferrugia",value = T),
+                    checkboxInput("showsp8","P. fendleri",value = F),
+                    checkboxInput("showsp9","G. olfenciana",value = F),
+                    checkboxInput("showsp10","E. amazonicum",value = F),
+                    checkboxInput("showsp11","M. dodecandra",value = T),
+                    checkboxInput("showsp12","G. latifolia",value = F),
+                    checkboxInput("showsp13","T. rubriverbium",value = F),
+                    checkboxInput("showsp14","E. americanus",value =T),
+                    checkboxInput("showsp15","V. timoides",value = F),
+                    
+                    h3("Climate variables"),
+                    checkboxInput("enso","ENSO",value = F),
+                    checkboxInput("prec","Precipitation",value = F),
+                    checkboxInput("temp","Temperature",value = F),
+                    checkboxInput("mois","Soil moisture",value = F),
+                    checkboxInput("hum","Humidity",value = F)
+                    
+                    
+                    
+                    
+                    
+                    
+           ),
               
               
           tabPanel(" Trend", 
@@ -152,47 +196,25 @@ body <- dashboardBody(
           
           ),
           
-          tabPanel("Seasonal",
-                   
-                   
-                   sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,200)),textOutput("SliderText"),
-                   selectInput("selection2", "Phenophase:",
-                               choices = c("Flowering","Fruiting"),selected = "Flowering"),
-                   selectInput("selection", "Time-series component:",
-                               choices = c("trend","seasonal","remainder","raw"),selected = "seasonal"),
-                   
-                   plotOutput("distPlot4"),
-                   
-                   h3("Species"),
-                   checkboxInput("showsp1","A. fendleri",value = F),
-                   checkboxInput("showsp2","P. tovarense",value = F),
-                   checkboxInput("showsp3","H. moritziana",value = F),
-                   checkboxInput("showsp4","R. grandis",value = F),
-                   checkboxInput("showsp5","C. tremadena",value = T),
-                   checkboxInput("showsp6","B. reticulata",value = F),
-                   checkboxInput("showsp7","V. ferrugia",value = T),
-                   checkboxInput("showsp8","P. fendleri",value = F),
-                   checkboxInput("showsp9","G. olfenciana",value = F),
-                   checkboxInput("showsp10","E. amazonicum",value = F),
-                   checkboxInput("showsp11","M. dodecandra",value = T),
-                   checkboxInput("showsp12","G. latifolia",value = F),
-                   checkboxInput("showsp13","T. rubriverbium",value = F),
-                   checkboxInput("showsp14","E. americanus",value =T),
-                   checkboxInput("showsp15","V. timoides",value = F),
-                   
-                   h3("Climate variables"),
-                   checkboxInput("enso","ENSO",value = F),
-                   checkboxInput("prec","Precipitation",value = F),
-                   checkboxInput("temp","Temperature",value = F),
-                   checkboxInput("mois","Soil moisture",value = F),
-                   checkboxInput("hum","Humidity",value = F)
-                   
-                   
-                   
-                   
          
           
+          
+          tabPanel("Nets",
+                  
+                   h3("Net for seasonal correlations for flowering between species"),
+                   img(src="perfe flores.png"),
+                   h3("Net for seasonal correlations for fruiting between species"),
+                   img(src="frutos sistema.png")
+                   
+                    
+            
+                   
+                   
+                   
+                   
           )
+          
+          
           
           )
             
@@ -209,7 +231,7 @@ body <- dashboardBody(
       
       tabPanel( "PCA",
             
-           sliderInput("range3", "Years from 1983 to 2017:",min = 1, max = 420, value = c(1,420)),
+           sliderInput("range3", "Months from 1983 to 2017:",min = 1, max = 420, value = c(1,420)),
             selectInput("sel3", "Phenophase:",
                        choices = c("Flowering","Fruiting"),selected = "Flowering"),
            plotlyOutput("distPlot2")
@@ -256,28 +278,41 @@ body <- dashboardBody(
     tabItem("subitem4",
             
             h1(tags$b("ATTENTION: For real time algorithm training and testing please go to this"), 
-               a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/")),
+               a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/"))
             
            # tags$iframe(src="https://programandoconro.shinyapps.io/ANN_forest/", width=1000,height=2000),
             
            
+        
+           
+            ),
+    
+    tabItem("prd",
             
+
             
             h3(" P. fendleri Machine Learning predictions ", align="center"),
             h5("Solid line: real data, Cutted line: ANN predictions", align="left"),
             
             img(src="ann_pred.png"),
-           h3("Precipitación actual (arriba) vs proyecciones 2050 (abajo) para la zona de estudio."),
-           img(src="coore.png"),
-           h3("Floración de P. fendleri bajo escenarios extremos"),
-           img(src="escenarios fendleri.png")
-           
-            )
+            h3("Present precipitation (top) vs precipitation for 2050 (down) in the sample area."),
+            img(src="coore.png"),
+            h3("Flowering of P. fendleri and Southern Oscillation. Low SOI means EL NIÑO season, High SOI means LA NIÑA season "),
+            img(src="flowers.png"),
+            h3("Flowering of P. fendleri under extreme scenarios"),
+            img(src="escenarios fendleri.png")
+            
+    )
+    
+    
+    
+    
+    
   ),
   
-  h5("App developer: Lic. Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
+  h5("Data Science: Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
   h5("Master degree analysis"),
-  h5("Tutor: PhD. Saúl Flores"),
+  h5("Supervisor: PhD. Saúl Flores"),
   h5("Colaborators: PhD. Carlos Mendez, PhD. Esther Gutierrez, PhD. Otto Rendón"),
   h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC), 2019"),
   h5(" Santa Cruz de Tenerife, Mayo, 2019. Todos los derechos reservados")
@@ -329,7 +364,10 @@ server <- function(input, output) {
   output$distPlot <- renderPlot({
     
     a=input$range[1];b=input$range[2]
-    if (input$data==T){d=d}
+    if (input$data==T){d=d
+    
+    
+    }
     if (input$data==F){d=x}
     t1<-d[a:b,input$sp]
     t2<-d[a:b,input$var]
