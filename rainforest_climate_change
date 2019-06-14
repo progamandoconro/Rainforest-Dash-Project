@@ -1,5 +1,3 @@
-
-
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -16,17 +14,16 @@ library(ggfortify)
 library(corrplot)
 library(bs4Dash)
 library(caret)
-
+library(tuneR)     
+library(seewave)
 
 
 normalize <- function(x) { 
   return((x - min(x)) / (max(x) - min(x)))
 }
 
-
 nd<-read.csv("trend.csv")
 nds<-read.csv("season.csv")
-
 
 x2    <-  read.csv("datfull.csv")
 x<-lapply(x2[,11:ncol(x2)],normalize)
@@ -82,26 +79,27 @@ sidebar <- dashboardSidebar(
     
     menuItem("Analysis", icon = icon("bar-chart-o"), tabName = "lisis",
              
-             menuSubItem("Exploratory", tabName = "subitem2"),
+             
              menuSubItem("Time Series", tabName = "subitem1"),
-             menuSubItem("Wavelets", tabName = "subitem3")
+             menuSubItem("Wavelets", tabName = "subitem3"),
+             menuSubItem("Exploratory", tabName = "subitem2"),
+             menuSubItem("Sound",tabName= "subitem5")
              
              
     ),
+   
+   
     menuItem("Machine Learning", icon = icon("bar-chart-o"), tabName = "sb3",
              
-             menuSubItem("ANN", tabName = "subitem4")
+             menuSubItem("ANN", tabName = "subitem4"),
+             menuSubItem("Predictions", tabName = "prd" )
              
     ),
     
-    
-    menuItem("Predictions", tabName = "prd"
-            
-    
-    
+    menuItem("Methods", icon = icon("bar-chart-o"), tabName = "methods"
+          
+             
     )
-   
-    
     
     
   )
@@ -112,9 +110,7 @@ body <- dashboardBody(
   tabItems(
     
     tabItem("intro",
-            
-            
-            
+                                   
            h1("Machine Learning predictions on rainforest plant reproduction events under climate change in Cordillera de la Costa, Venezuela",align="center"),
            h5("Rodrigo Díaz Lupanow, Esther Gutierrez, Saúl Flores",align="center"),
            h5("Centro de Ecología y Centro de Física del Instituto Venezolano de Investigaciones Científicas (IVIC)",align="center"),
@@ -125,24 +121,78 @@ body <- dashboardBody(
            )
             
             #h5("Nota del autor: Este es un proyecto científico y de divulgación, parte de un trabajo de maestría y parte blog de la página RconRo. El objetivo es entender los efectos del cambio climático en los eventos reproductivos (floración y fructificación) de 15 especies de plantas del bosque nublado, en la Cordillera de la Costa, Venezuela. Primero se hará un estudio de la data, desde un exploración inicial, hasta algoritmos que predigan las tendencia futuras del bosque. La información que se adquira puede ser útil a la hora de tomar decisiones de conservación y adaptación al cambio climático")   
-            
-            
+                        
     ),
     
-    tabItem("intro2",
-           h4("Lifecycle dynamics of organisms, or phenology, is highly attached to habitat conditions (Zhao et al., 2013). In this sense, plant phenology had been use as reliable bioindicator of climate change (Gordo and Sanz, 2010). Temperature is known to strongly control flowering, both alone and through interactions with other variables, such as photoperiod (Partanen et al. 1998). Rainfall and water availability are also recognized to affect phenology, with consequences on ecosystem structure (Penuelas et al., 2009).  "),
-           h4("Reproductive population dynamics can affect community through alteration of interspecific relationships, such as depredation, parasitism and mutualism (van Schaik et al. 1993). Climatic patterns, such as El Niño Southern Oscillation (ENSO) had been proved to affect plants (Fauset et al. 2012), increase masse coral bleaching (Stone et al. 1999), promote vari- ability in turtles nesting numbers (Solow et al. 2002), change fire regimes in forest communities (Beckage et al. 2003), also assumed to be responsible of ungulates abundance decline in Africa (Ogutu and Owen-Smith 2003), and it is related to cathastrofic events, such as hurricanes (Smith et al. 2007) and droughts or floods (Peixoto 1993), depending on location. The North Atlantic Oscillation (NAO) had been shown to have impact on vegetation productivity in Africa (Wang 2003), on plankton dynamics in European lakes (Straile and Adrian 2000), and on many other ecosystems of Norhern Hemisphere (Blenckner and Hillebrand 2002), but its effect has not been evaluated in the Northern South America tropical rainforest. ENSO’ extreme phases, known as El Niño and La Niña, can be more intense or remain longer depending on other oscillations, such as NAO (Giannini et al. 2001). "),
-          h4("Moreover, accumulation of greenhouse-gases is predicted to affect ENSO, with longer and recurrent El Niño and La Niña events (Cai et al. 2014). As this strong influence of human alteration on weather is significantly affecting vegetation around the world (Mourtzinis et al. 2016), recognizing possi- ble future scenarios in which plant reproduction is prone to be negatively affected is critical for ecosystem conservation. Global mean temperature is rising and it is frequently associated with earlier plant reproduction events, such as flowering (Cleland et al. 2007). In the Mediterranean region, climate change has been proved to shifted plant phenology (Gordo and Sanz 2010). This climate change alterations on phenology has also been proved for fishes (Asch 2015) and birds (Sparks 1999). But, while reports are abundant for Europe, U.S, China or Japan, the tropics are limited due to the absence of long-term data (Zhao et al. 2013). In the case of Northern South America, this lack is even bigger, but while the region is one of the most megadiverse of the planet, climate change repercussions on its ecosystems are poorly understood.  We aim to understand future climate change threats to plant community."),
-          h4("Flowering and fruting in 15 species of plants were sampled during a 30 years survey. Following, preliminary results. ")
+    tabItem("methods",
+          h4("Sample area and methods
+From 1983 to 2016, monthly occurrence of flowers and fruits of five randomly selected
+P. fendleri’s individuals was reported in a hectare area within rain forest at Coastal Range,
+Venezuela (N 10 ◦ 23 0 43 00 E 66 ◦ 58 0 35 00 , 5341 FASL). This area is included in P. fendleri’s natural
+distribution (Lau and Bosque, 2003). The climate in the region is primarily influenced by the
+Inter-Tropical Convergence Zone (ITCZ), ENSO (Asner et al., 2000) and NAO (Giannini et al.,
+2001a). ENSO translates into very dry episodes during El Niño phase, while La Niña phase is
+characterized by rainy and humid conditions (Peixoto, 1992).P. fendleri is a secondary succes-
+sion shrub belonging to Rubiaceae family. Its reproduction is very complex, having mandatory
+xenogonous heterostilia (Lau and Bosque, 2003). It has ornitofilia as main polinization syn-
+drome, but also melitofilia and esfingofilia had been reported. Dispersion of its fruits is made
+by animals (zoocoria) and its reproductive density is about 0.66 individuals/m2 (+- 0.88) within
+sample area (Flores et al. 2005). Rate of flowering change in time was calculated.
+Climate data for sample area was downloaded from the International Research Institute for
+Climate and Society on-line resources (IRI/LDEO, 2016). This includes oscillation indexes
+and reconstructed measures of temperature, precipitation, radiation and soil moisture. Further
+information is available in the NCEP/NCAR Reanalysis documentation (Kalnay et. al, 1996).
+Southern Oscillation (SO) index was used as an ENSO status indicator, where negatives values
+signal El Niño phases, instead of positive values witch correspond to La Niña phases. Near
+0 values vapproximate to what is known as normal or transitional states. SO is calculated as
+the difference between the standardized Tahiti Sea Level Pressure and the standardized Darwin
+SLP records. Also, NAO index was constructed by projecting the monthly mean height anoma-
+lies onto the leading Emperical Orthogonal Function mode. NAO index was normalized by the
+standard deviation of the monthly index (1979-2000 base period). Besides, monthly diagnostic
+soil moisture (0-10 cm) and precipitation data was available thanks to the Reanalysis Project
+(Kalnay et. al, 1996). Additionally, land surface air temperature was used to calculate rate of
+change through time. Monthly outgoing longwave radiation data consists in a combination of
+two large individual data sets of station records of the Global Historical Climatology Network
+version 2 and the Climate Anomaly Monitoring System (GHCN + CAMS) (Fan and van den
+Dool 2008).
+R software was utilized for data mining, statistics and plotting. Function stl of stats package
+was used to obtain interannual values from both phenologic and climatic data, removing sea-
+sonal values, while a remainder was smoothed to find the trend for the variables. This smoothing
+was effectively done replacing values by taking the mean. The overall level was removed from
+the seasonal component and added to the trend component, iterating the process a few times.
+After so, the component was used for builting ANN in order to predict phenologic responses
+under extreme climatic scenarios. This transformation procedure can be very convenient for
+prediction improvement (Zhang and Qi 2005). The obtained data was randomized and sepa-
+3rated into 3 sections : 60% for initial training, 20% for model selection with cross-validation
+and 20% reserved for final report of error.
+Function neuralnet from neuralnet package was used to built resilient backpropagation with
+backtracking ANN (Riedmiller, 1994), using logistic as activation function. Final architecture
+of the net was tuned plotting learning curves and using ”elbow” method.
+Simulations were done by generating a climatic data frame with all combinations of vari-
+ables adjusted to 0.20 and 0.80 probability of occurrence. This hypothetical values were set in
+this way in order to represent extremely low and extremely high probability of climatic vari-
+ables. Therefore, response of phenology under artificial scenarios could be evaluated in order
+to understand climate effect on phenology. correspondingly. Scenarios were ordered from more
+to less climate effect on the sum of flowering and fruiting probabilities of occurrence, taking 1
+and 0 as maximum and minimum possible values, correspondingly. To ensure reproducibility
+of the process, Random Number Generator (RNG) state was set to 12345 in a Toshiba Satellite
+S75t computer.    ")
             ),
     
+        
+    tabItem("intro2",
+            h4("Lifecycle dynamics of organisms, or phenology, is highly attached to habitat conditions (Zhao et al., 2013). In this sense, plant phenology had been use as reliable bioindicator of climate change (Gordo and Sanz, 2010). Temperature is known to strongly control flowering, both alone and through interactions with other variables, such as photoperiod (Partanen et al. 1998). Rainfall and water availability are also recognized to affect phenology, with consequences on ecosystem structure (Penuelas et al., 2009).  "),
+            h4("Reproductive population dynamics can affect community through alteration of interspecific relationships, such as depredation, parasitism and mutualism (van Schaik et al. 1993). Climatic patterns, such as El Niño Southern Oscillation (ENSO) had been proved to affect plants (Fauset et al. 2012), increase masse coral bleaching (Stone et al. 1999), promote vari- ability in turtles nesting numbers (Solow et al. 2002), change fire regimes in forest communities (Beckage et al. 2003), also assumed to be responsible of ungulates abundance decline in Africa (Ogutu and Owen-Smith 2003), and it is related to cathastrofic events, such as hurricanes (Smith et al. 2007) and droughts or floods (Peixoto 1993), depending on location. The North Atlantic Oscillation (NAO) had been shown to have impact on vegetation productivity in Africa (Wang 2003), on plankton dynamics in European lakes (Straile and Adrian 2000), and on many other ecosystems of Norhern Hemisphere (Blenckner and Hillebrand 2002), but its effect has not been evaluated in the Northern South America tropical rainforest. ENSO’ extreme phases, known as El Niño and La Niña, can be more intense or remain longer depending on other oscillations, such as NAO (Giannini et al. 2001). "),
+            h4("Moreover, accumulation of greenhouse-gases is predicted to affect ENSO, with longer and recurrent El Niño and La Niña events (Cai et al. 2014). As this strong influence of human alteration on weather is significantly affecting vegetation around the world (Mourtzinis et al. 2016), recognizing possi- ble future scenarios in which plant reproduction is prone to be negatively affected is critical for ecosystem conservation. Global mean temperature is rising and it is frequently associated with earlier plant reproduction events, such as flowering (Cleland et al. 2007). In the Mediterranean region, climate change has been proved to shifted plant phenology (Gordo and Sanz 2010). This climate change alterations on phenology has also been proved for fishes (Asch 2015) and birds (Sparks 1999). But, while reports are abundant for Europe, U.S, China or Japan, the tropics are limited due to the absence of long-term data (Zhao et al. 2013). In the case of Northern South America, this lack is even bigger, but while the region is one of the most megadiverse of the planet, climate change repercussions on its ecosystems are poorly understood.  We aim to understand future climate change threats to plant community."),
+            h4("Flowering and fruting in 15 species of plants were sampled during a 30 years survey. Following, preliminary results. ")
+    ),
+      
+    
     tabItem("subitem1",
-            
-            
+                        
          tabsetPanel(
            
-           
-           tabPanel("TS Decomposition",
+                      tabPanel("TS Decomposition",
                     
                     
                     sliderInput("range2", "Months from 1983 to 2016:",min = 1, max = nrow(x), value = c(100,420)),textOutput("SliderText"),
@@ -176,12 +226,7 @@ body <- dashboardBody(
                     checkboxInput("temp","Temperature",value = F),
                     checkboxInput("mois","Soil moisture",value = F),
                     checkboxInput("hum","Humidity",value = F)
-                    
-                    
-                    
-                    
-                    
-                    
+                                                           
            ),
               
               
@@ -195,34 +240,19 @@ body <- dashboardBody(
           plotOutput("distPlot")
           
           ),
-          
-         
-          
-          
+                  
           tabPanel("Nets",
                   
                    h3("Net for seasonal correlations for flowering between species"),
                    img(src="perfe flores.png"),
                    h3("Net for seasonal correlations for fruiting between species"),
                    img(src="frutos sistema.png")
-                   
-                    
-            
-                   
-                   
-                   
-                   
+                     
           )
-          
-          
+                  
           
           )
-            
-         
-              
-              
-              
-            
+             
             
     ),
     
@@ -256,16 +286,11 @@ body <- dashboardBody(
                 
                 img(src="msd3d.png")
                 
-                
-                
+                               
       )
       
-      
-      
-      
       )
-            
-            
+             
     ),
     tabItem("subitem3",
            
@@ -275,15 +300,25 @@ body <- dashboardBody(
             plotOutput("distPlot3")
             
     ),
+    
+    tabItem("subitem5",
+            
+            h5("Planta",tags$b("P. fendleri"),"del bosque nublado tropical"),
+            h5("Floración mensual entre 1987-2016"),
+            tags$audio(src = "sound.mp3", autoplay =T, controls = T),
+            h5("Floración en el mes de Junio entre 1987-2016"),
+            tags$audio(src = "fendleri_junio.wav", autoplay =T, controls = T)
+            
+    ),
+    
+    
     tabItem("subitem4",
             
             h1(tags$b("ATTENTION: For real time algorithm training and testing please go to this"), 
-               a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/"))
+               a("Link", href="https://programandoconro.shinyapps.io/ANN_forest/", target="blank"))
             
            # tags$iframe(src="https://programandoconro.shinyapps.io/ANN_forest/", width=1000,height=2000),
             
-           
-        
            
             ),
     
@@ -304,10 +339,6 @@ body <- dashboardBody(
             
     )
     
-    
-    
-    
-    
   ),
   
   h5("Data Science: Rodrigo Díaz Lupanow (programandoconro@gmail.com)"),
@@ -321,45 +352,18 @@ body <- dashboardBody(
 
 server <- function(input, output) {
   
-  
-  
   output$distPlot5 <- renderPlot({
-    
-    
     
     a1=input$range11[1];b1=input$range11[2]
     
     
     M=cor(d4[a1:b1,input$var211])
     
-    
-    
     corrplot(M,method = "circle",order =  ifelse(input$box==T,  "hclust","alphabet"))
-    
     
   })
   
 
-    
-    
-   
-        
-        
-        
-      
-      
-      
-      
-      
-      
-    
-    
-    
-    
-    
-  
-  
-  
   
   output$distPlot <- renderPlot({
     
@@ -1280,9 +1284,6 @@ server <- function(input, output) {
   
   
 }
-
-
-
 
 shinyApp(
   ui = dashboardPage(header, sidebar, body),
